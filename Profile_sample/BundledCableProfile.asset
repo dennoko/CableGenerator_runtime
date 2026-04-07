@@ -9,9 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bf745a0ce81d4e646a2266a51a1c99ad, type: 3}
-  m_Name: ParallelWireProfile
+  m_Script: {fileID: 11500000, guid: 4ba82a30401e28c45a51d90db3f5ac56, type: 3}
+  m_Name: BundledCableProfile
   m_EditorClassIdentifier: 
-  wireRadius: 0.02
-  spacing: 0.03
+  wireCount: 10
+  wireRadius: 0.015
+  gap: 0
   segments: 8
