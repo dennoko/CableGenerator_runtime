@@ -26,7 +26,9 @@ namespace CableGeneratorRuntime
         [Tooltip("スケール")]
         public Vector3 scale = Vector3.one;
 
+        [SerializeField, HideInInspector]
         GameObject spawnedInstance;
+        [SerializeField, HideInInspector]
         GameObject lastPrefab;
         SplineContainer splineContainer;
 
@@ -34,7 +36,8 @@ namespace CableGeneratorRuntime
         {
             splineContainer = GetComponentInParent<SplineContainer>();
             Spline.Changed += OnSplineChanged;
-            RebuildInstance();
+            if (spawnedInstance == null)
+                RebuildInstance();
             UpdateAttachment();
         }
 
@@ -125,6 +128,9 @@ namespace CableGeneratorRuntime
 
         void RebuildInstance()
         {
+            // Prefab未変更かつインスタンス生存中 → スキップ
+            if (prefab == lastPrefab && spawnedInstance != null) return;
+
             // 既存インスタンスを破棄
             if (spawnedInstance != null)
             {
@@ -146,10 +152,7 @@ namespace CableGeneratorRuntime
 #endif
 
             if (spawnedInstance != null)
-            {
                 spawnedInstance.name = prefab.name + " (Attachment)";
-                spawnedInstance.hideFlags = HideFlags.DontSave;
-            }
         }
 
         /// <summary>

@@ -155,7 +155,13 @@ namespace CableGeneratorRuntime
                     // UV1: パッキングされたライトマップUV
                     int loopIdx = j / vertsPerLoop;
                     int localJ = j % vertsPerLoop;
-                    float localU = (float)localJ / (vertsPerLoop - 1);
+                    // 閉じ頂点(末尾)はUV1上で先頭と重ならないよう、
+                    // 1つ手前の外側にわずかにオフセット
+                    float localU;
+                    if (localJ == vertsPerLoop - 1)
+                        localU = (float)(localJ - 1) / (vertsPerLoop - 1) + 0.5f / (vertsPerLoop - 1);
+                    else
+                        localU = (float)localJ / (vertsPerLoop - 1);
                     uv2s.Add(CalculateUV1(uv1Layout, loopIdx, localU, t, i));
                 }
             }
@@ -220,7 +226,7 @@ namespace CableGeneratorRuntime
         }
 
         const float AspectThreshold = 4f;
-        const float Padding = 0.002f;
+        const float Padding = 0.01f;
 
         UV1Layout CalculateUV1Layout(float[] perimeters, int loopCount, float splineLength)
         {
@@ -236,10 +242,17 @@ namespace CableGeneratorRuntime
                 float perimeter = (loop < perimeters.Length) ? perimeters[loop] : 0.01f;
                 if (perimeter < 0.0001f) perimeter = 0.0001f;
 
+                // --- 現状の課題 ---
+                // メッシュ生成時に頂点を共有しているため、UV空間でアイランドを分割（splits > 1）すると
+                // 境界部分の三角形がUV空間上で島を跨いでしまい、ストレッチや重なりが発生する。
+                // 解決には分割点での頂点複製が必要。
+                // いったん無効化（1本1アイランド）として、面積比に応じた重なりを回避する。
+                int splits = 1; 
+                /*
                 float ratio = splineLength / perimeter;
-                int splits = 1;
                 if (ratio > AspectThreshold)
                     splits = Mathf.CeilToInt(Mathf.Sqrt(ratio));
+                */
 
                 layout.loopStripStart[loop] = stripList.Count;
                 layout.loopSplitCount[loop] = splits;

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4ba82a30401e28c45a51d90db3f5ac56, type: 3}
   m_Name: BundledCableProfile
   m_EditorClassIdentifier: 
-  wireCount: 10
-  wireRadius: 0.015
+  wireCount: 8
+  wireRadius: 0.004
   gap: 0
-  segments: 8
+  segments: 6
