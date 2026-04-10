@@ -70,6 +70,8 @@ namespace CableGeneratorRuntime
             return norms;
         }
 
+        public override int GetVerticesPerLoop() => segments + 1;
+
         public override float[] GetUCoords()
         {
             int count = segments + 1;

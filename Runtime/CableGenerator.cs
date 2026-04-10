@@ -6,7 +6,7 @@ using Unity.Mathematics;
 namespace CableGeneratorRuntime
 {
     [RequireComponent(typeof(SplineContainer), typeof(MeshFilter), typeof(MeshRenderer))]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class CableGenerator : MonoBehaviour
     {
         [Header("断面プロファイル")]
@@ -43,6 +43,18 @@ namespace CableGeneratorRuntime
         void OnDisable()
         {
             Spline.Changed -= OnSplineChanged;
+        }
+
+        void OnDestroy()
+        {
+            if (generatedMesh != null)
+            {
+                if (Application.isPlaying)
+                    Destroy(generatedMesh);
+                else
+                    DestroyImmediate(generatedMesh);
+                generatedMesh = null;
+            }
         }
 
         void OnValidate()

@@ -31,10 +31,59 @@ namespace CableGeneratorRuntime
         [Tooltip("揺らぎのシード値（同じ値なら同じ配置になる）")]
         public int seed = 42;
 
+        // キャッシュ
+        Vector2[] cachedCenters;
+        float[] cachedRadii;
+        int cachedHash;
+
+        void OnValidate()
+        {
+            InvalidateCache();
+        }
+
+        void InvalidateCache()
+        {
+            cachedCenters = null;
+            cachedRadii = null;
+            cachedHash = 0;
+        }
+
+        int ComputeParamHash()
+        {
+            unchecked
+            {
+                int h = wireCount * 397;
+                h = h * 397 + wireRadius.GetHashCode();
+                h = h * 397 + segments;
+                h = h * 397 + jitter.GetHashCode();
+                h = h * 397 + radiusJitter.GetHashCode();
+                h = h * 397 + seed;
+                return h;
+            }
+        }
+
+        Vector2[] GetCachedCenters()
+        {
+            int h = ComputeParamHash();
+            if (cachedCenters == null || cachedHash != h)
+            {
+                cachedCenters = ComputeWireCenters();
+                cachedRadii = ComputeWireRadii(cachedCenters.Length);
+                cachedHash = h;
+            }
+            return cachedCenters;
+        }
+
+        float[] GetCachedRadii()
+        {
+            GetCachedCenters(); // ensure cache is populated
+            return cachedRadii;
+        }
+
         public override Vector2[] GetVertices()
         {
-            var centers = CalculateWireCenters();
-            var radii = CalculateWireRadii(centers.Length);
+            var centers = GetCachedCenters();
+            var radii = GetCachedRadii();
             int vertsPerWire = segments + 1;
             int totalVerts = vertsPerWire * centers.Length;
             var verts = new Vector2[totalVerts];
@@ -58,7 +107,7 @@ namespace CableGeneratorRuntime
 
         public override Vector2[] GetNormals()
         {
-            var centers = CalculateWireCenters();
+            var centers = GetCachedCenters();
             int vertsPerWire = segments + 1;
             int totalVerts = vertsPerWire * centers.Length;
             var norms = new Vector2[totalVerts];
@@ -80,7 +129,7 @@ namespace CableGeneratorRuntime
 
         public override float[] GetUCoords()
         {
-            var centers = CalculateWireCenters();
+            var centers = GetCachedCenters();
             int vertsPerWire = segments + 1;
             int totalVerts = vertsPerWire * centers.Length;
             var us = new float[totalVerts];
@@ -101,7 +150,7 @@ namespace CableGeneratorRuntime
         /// <summary>
         /// 各ケーブルの半径を計算する。radiusJitter > 0 なら個別にばらつきを与える。
         /// </summary>
-        float[] CalculateWireRadii(int count)
+        float[] ComputeWireRadii(int count)
         {
             var radii = new float[count];
 
@@ -129,7 +178,7 @@ namespace CableGeneratorRuntime
         /// 同心円パッキングで各ケーブルの中心座標を計算する。
         /// リング0 = 中心 (1本)、リング1 = 6本、リング2 = 12本、リング3 = 18本 ...
         /// </summary>
-        Vector2[] CalculateWireCenters()
+        Vector2[] ComputeWireCenters()
         {
             int count = Mathf.Max(1, wireCount);
             var centers = new Vector2[count];

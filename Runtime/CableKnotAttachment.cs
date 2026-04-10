@@ -8,7 +8,7 @@ namespace CableGeneratorRuntime
     /// スプラインの制御点（ノット）に任意のPrefabをアタッチするコンポーネント。
     /// Cable オブジェクトの子 GameObject に追加して使用する。
     /// </summary>
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class CableKnotAttachment : MonoBehaviour
     {
         [Tooltip("アタッチ先のノットインデックス")]
@@ -121,9 +121,19 @@ namespace CableGeneratorRuntime
         void DestroySelf()
         {
             if (Application.isPlaying)
+            {
                 Destroy(gameObject);
+            }
             else
-                DestroyImmediate(gameObject);
+            {
+#if UNITY_EDITOR
+                UnityEditor.EditorApplication.delayCall += () =>
+                {
+                    if (this != null)
+                        DestroyImmediate(gameObject);
+                };
+#endif
+            }
         }
 
         void RebuildInstance()
