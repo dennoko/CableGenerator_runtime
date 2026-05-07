@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf745a0ce81d4e646a2266a51a1c99ad, type: 3}
   m_Name: ParallelWireProfile
   m_EditorClassIdentifier: 
-  wireRadius: 0.012
-  spacing: 0.012
+  wireRadius: 0.002
+  spacing: 0.004
   segments: 8

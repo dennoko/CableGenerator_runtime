@@ -14,7 +14,7 @@ namespace CableGeneratorRuntime
         [Tooltip("アタッチ先のノットインデックス")]
         public int knotIndex = 0;
 
-        [Tooltip("配置するPrefab")]
+        [Tooltip("配置するPrefabまたはFBXモデル")]
         public GameObject prefab;
 
         [Tooltip("ノット位置からのオフセット（ローカル）")]
@@ -156,7 +156,15 @@ namespace CableGeneratorRuntime
             if (prefab == null) return;
 
 #if UNITY_EDITOR
-            spawnedInstance = UnityEditor.PrefabUtility.InstantiatePrefab(prefab, transform) as GameObject;
+            // 通常のPrefab(.prefab)はPrefab接続を維持するInstantiatePrefabで生成する。
+            // FBXモデルアセット(PrefabAssetType.Model)はInstantiateで生成する。
+            var assetType = UnityEditor.PrefabUtility.GetPrefabAssetType(prefab);
+            bool isRegularPrefab = assetType == UnityEditor.PrefabAssetType.Regular
+                                || assetType == UnityEditor.PrefabAssetType.Variant;
+            if (isRegularPrefab)
+                spawnedInstance = UnityEditor.PrefabUtility.InstantiatePrefab(prefab, transform) as GameObject;
+            else
+                spawnedInstance = Instantiate(prefab, transform);
 #else
             spawnedInstance = Instantiate(prefab, transform);
 #endif
