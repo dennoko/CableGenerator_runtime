@@ -30,6 +30,8 @@ namespace CableGeneratorRuntime
         GameObject spawnedInstance;
         [SerializeField, HideInInspector]
         GameObject lastPrefab;
+
+        public GameObject SpawnedInstance => spawnedInstance;
         SplineContainer splineContainer;
 
         void OnEnable()
