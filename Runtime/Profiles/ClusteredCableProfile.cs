@@ -36,9 +36,10 @@ namespace CableGeneratorRuntime
         float[] cachedRadii;
         int cachedHash;
 
-        void OnValidate()
+        protected override void OnValidate()
         {
             InvalidateCache();
+            base.OnValidate();
         }
 
         void InvalidateCache()

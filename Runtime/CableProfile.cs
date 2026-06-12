@@ -8,6 +8,14 @@ namespace CableGeneratorRuntime
     /// </summary>
     public abstract class CableProfile : ScriptableObject
     {
+        /// <summary>
+        /// プロファイルのパラメータが変更されたときに発火する。
+        /// CableGenerator が購読し、インスペクタでの編集をメッシュへ即時反映する。
+        /// </summary>
+        public event System.Action Changed;
+
+        protected virtual void OnValidate() => Changed?.Invoke();
+
         /// <summary>断面の2D頂点座標（ローカル XY 平面）</summary>
         public abstract Vector2[] GetVertices();
 

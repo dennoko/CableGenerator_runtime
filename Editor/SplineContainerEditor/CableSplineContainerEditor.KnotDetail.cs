@@ -124,13 +124,11 @@ namespace CableGeneratorEditor
             // 位置フィールド
             EditorGUILayout.BeginHorizontal();
             GUILayout.Label(kLabelPos, CableGeneratorTheme.CaptionStyle, GUILayout.Width(28));
+            // 表示用に丸めると編集時に丸めた値が他軸へ書き戻されてノットが
+            // 意図せず移動するため、生の値をそのまま表示する
             Vector3 worldPos = container.transform.TransformPoint((Vector3)(float3)knot.Position);
-            Vector3 displayPos = new Vector3(
-                (float)System.Math.Round(worldPos.x, 2),
-                (float)System.Math.Round(worldPos.y, 2),
-                (float)System.Math.Round(worldPos.z, 2));
             EditorGUI.BeginChangeCheck();
-            Vector3 newWorldPos = EditorGUILayout.Vector3Field(GUIContent.none, displayPos);
+            Vector3 newWorldPos = EditorGUILayout.Vector3Field(GUIContent.none, worldPos);
             if (EditorGUI.EndChangeCheck())
             {
                 Undo.RecordObject(container, "制御点を移動");

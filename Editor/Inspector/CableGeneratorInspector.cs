@@ -17,6 +17,8 @@ namespace CableGeneratorEditor
         SerializedProperty resolutionProp;
         SerializedProperty uvTilingProp;
 
+        // インスペクタ再生成で保存先指定が消えないよう EditorPrefs に永続化する
+        const string kPrefKeyBakeFolder = "CableGenerator_BakeFolderPath";
         string bakeFolderPath = "";
 
         // ---- Picking Mode (static: 複数インスペクタ間で共有) ----
@@ -137,6 +139,15 @@ namespace CableGeneratorEditor
             profileProp    = serializedObject.FindProperty("profile");
             resolutionProp = serializedObject.FindProperty("resolution");
             uvTilingProp   = serializedObject.FindProperty("uvTiling");
+            bakeFolderPath = EditorPrefs.GetString(kPrefKeyBakeFolder, "");
+        }
+
+        void OnDisable()
+        {
+            // 選択解除などでインスペクタが閉じると「キャンセル」ボタンに到達できなくなり、
+            // static なピッキング状態が残って全インスペクタがロックされるため、ここで解除する。
+            if (s_pickingTarget != null && s_pickingTarget == target as CableGenerator)
+                CancelPickingMode();
         }
 
         // ================================================================
@@ -337,6 +348,10 @@ namespace CableGeneratorEditor
                     GUILayout.Label(s_sagLastResult, CableGeneratorTheme.CaptionStyle);
                 }
 
+                if (!s_hasSagKnots)
+                    GUILayout.Label("「たわみノットを挿入」後に下のスライダーで調整できます。",
+                        CableGeneratorTheme.CaptionStyle);
+
                 GUILayout.Space(6);
 
                 EditorGUI.BeginChangeCheck();
@@ -388,6 +403,7 @@ namespace CableGeneratorEditor
 
                 EditorGUILayout.BeginHorizontal();
                 EditorGUILayout.PrefixLabel("保存先フォルダ");
+                EditorGUI.BeginChangeCheck();
                 bakeFolderPath = EditorGUILayout.TextField(bakeFolderPath);
                 if (GUILayout.Button("...", CableGeneratorTheme.SecondaryButtonStyle, GUILayout.Width(28)))
                 {
@@ -397,15 +413,24 @@ namespace CableGeneratorEditor
                         string dataPath = Application.dataPath.Replace("\\", "/");
                         selected = selected.Replace("\\", "/");
                         if (selected.StartsWith(dataPath))
+                        {
                             bakeFolderPath = "Assets" + selected.Substring(dataPath.Length);
+                            GUI.changed = true;
+                        }
                         else
                             EditorUtility.DisplayDialog("エラー", "Assetsフォルダ内を選択してください。", "OK");
                     }
                 }
+                if (EditorGUI.EndChangeCheck())
+                    EditorPrefs.SetString(kPrefKeyBakeFolder, bakeFolderPath);
                 EditorGUILayout.EndHorizontal();
 
                 if (string.IsNullOrEmpty(bakeFolderPath))
                     GUILayout.Label($"未設定の場合: {CableMeshExporter.DefaultOutputFolder}", CableGeneratorTheme.CaptionStyle);
+
+                if (!hasMesh)
+                    GUILayout.Label("メッシュが未生成のため保存できません。断面プロファイルとスプラインを設定してください。",
+                        CableGeneratorTheme.CaptionStyle);
 
                 GUILayout.Space(8);
 

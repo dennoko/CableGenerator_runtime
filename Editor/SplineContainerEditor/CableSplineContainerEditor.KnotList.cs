@@ -68,13 +68,8 @@ namespace CableGeneratorEditor
                              : isLast  ? $"[{index}] エンド"
                              :           $"[{index}]";
 
-            var labelBtnStyle = new GUIStyle(CableGeneratorTheme.CaptionStyle)
-            {
-                alignment = TextAnchor.MiddleLeft
-            };
-
             if (GUILayout.Button(new GUIContent(labelText, $"クリックしてノット {index} を選択します"),
-                labelBtnStyle, GUILayout.ExpandWidth(true), GUILayout.Height(22)))
+                CableGeneratorTheme.KnotLabelButtonStyle, GUILayout.ExpandWidth(true), GUILayout.Height(22)))
             {
                 CableGeneratorInspector.s_snapKnotIndex = index;
                 CableGeneratorInspector.s_selectedKnotIndices.Clear();
@@ -108,15 +103,8 @@ namespace CableGeneratorEditor
             GUILayout.Space(2);
 
             EditorGUI.BeginDisabledGroup(total <= 2);
-            var deleteBtnStyle = new GUIStyle(CableGeneratorTheme.DangerButtonStyle)
-            {
-                fontSize  = Mathf.RoundToInt(CableGeneratorTheme.DangerButtonStyle.fontSize * 1.5f),
-                alignment = TextAnchor.MiddleCenter,
-                padding   = new RectOffset(0, 0, 0, 0),
-            };
-
             if (GUILayout.Button(new GUIContent("×", $"ノット {index} を削除します（最低2点必要）"),
-                deleteBtnStyle, GUILayout.Width(22), GUILayout.Height(22)))
+                CableGeneratorTheme.KnotDeleteButtonStyle, GUILayout.Width(22), GUILayout.Height(22)))
                 deleteIndex = index;
             EditorGUI.EndDisabledGroup();
 

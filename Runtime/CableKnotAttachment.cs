@@ -53,9 +53,22 @@ namespace CableGeneratorRuntime
             if (splineContainer == null)
                 splineContainer = GetComponentInParent<SplineContainer>();
 
-            // Prefab が変更された場合はインスタンスを再生成
+            // Prefab が変更された場合はインスタンスを再生成。
+            // OnValidate 中の DestroyImmediate / Instantiate は Unity が許可して
+            // いないため、エディタでは delayCall で遅延実行する。
             if (prefab != lastPrefab)
+            {
+#if UNITY_EDITOR
+                UnityEditor.EditorApplication.delayCall += () =>
+                {
+                    if (this == null) return;
+                    RebuildInstance();
+                    UpdateAttachment();
+                };
+#else
                 RebuildInstance();
+#endif
+            }
 
             UpdateAttachment();
         }
@@ -74,6 +87,8 @@ namespace CableGeneratorRuntime
                 }
             }
             if (!isOurSpline) return;
+
+            int prevKnotIndex = knotIndex;
 
             if (modification == SplineModification.KnotInserted)
             {
@@ -103,6 +118,12 @@ namespace CableGeneratorRuntime
                     knotIndex--;
                 }
             }
+
+#if UNITY_EDITOR
+            // 自動シフトした knotIndex がシーン保存に反映されるよう Dirty を立てる
+            if (knotIndex != prevKnotIndex && !Application.isPlaying)
+                UnityEditor.EditorUtility.SetDirty(this);
+#endif
 
             UpdateAttachment();
         }

@@ -29,6 +29,8 @@ namespace CableGeneratorEditor
             }
         }
 
+        static GUIStyle s_sceneHintStyle;
+
         static void DrawSceneHintLabel()
         {
             Handles.BeginGUI();
@@ -36,14 +38,23 @@ namespace CableGeneratorEditor
                 ? "[ Spline設定 ]  1点目を選択   Esc: キャンセル"
                 : "[ Spline設定 ]  2点目を選択   Esc: キャンセル";
 
-            GUIStyle style = new GUIStyle(GUI.skin.box)
-            {
-                alignment = TextAnchor.MiddleCenter,
-                fontSize  = 12,
-            };
-            Vector2 size = style.CalcSize(new GUIContent(msg));
-            float   x    = (Screen.width - size.x) * 0.5f;
-            GUI.Box(new Rect(x, 8, size.x + 16, size.y + 8), msg, style);
+            if (s_sceneHintStyle == null)
+                s_sceneHintStyle = new GUIStyle(GUI.skin.box)
+                {
+                    alignment = TextAnchor.MiddleCenter,
+                    fontSize  = 12,
+                };
+
+            // Screen.width はピクセル単位、GUI 座標はポイント単位のため
+            // HiDPI 環境では SceneView の矩形から幅を取る
+            var   sceneView = SceneView.currentDrawingSceneView;
+            float viewWidth = sceneView != null
+                ? sceneView.position.width
+                : Screen.width / EditorGUIUtility.pixelsPerPoint;
+
+            Vector2 size = s_sceneHintStyle.CalcSize(new GUIContent(msg));
+            float   x    = (viewWidth - size.x) * 0.5f;
+            GUI.Box(new Rect(x, 8, size.x + 16, size.y + 8), msg, s_sceneHintStyle);
             Handles.EndGUI();
         }
 

@@ -46,10 +46,12 @@ namespace CableGeneratorEditor
                             CancelPickingMode();
                         }
 
-                        e.Use();
                         Repaint();
                         SceneView.RepaintAll();
                     }
+                    // ヒットしないクリックも消費し、選択解除でピッキングが
+                    // 中断されるのを防ぐ（コライダー未付与の面を誤クリックした場合など）
+                    e.Use();
                 }
 
                 if (e.type == EventType.KeyDown && e.keyCode == KeyCode.Escape)

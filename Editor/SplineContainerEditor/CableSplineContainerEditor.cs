@@ -127,6 +127,8 @@ namespace CableGeneratorEditor
 
             var spline = container.Splines[0];
             Transform tf = container.transform;
+            // Repaint 以外のイベントでは Camera.current が null になることがある
+            if (Camera.current == null) return;
             EnsureIndexLabelStyles();
 
             for (int i = 0; i < spline.Count; i++)

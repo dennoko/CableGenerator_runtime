@@ -24,6 +24,15 @@ namespace CableGeneratorEditor
 
             // 保存先フォルダを決定
             string folder = string.IsNullOrEmpty(outputFolder) ? DefaultOutputFolder : outputFolder;
+            folder = folder.Replace("\\", "/").TrimEnd('/');
+
+            // AssetDatabase は Assets 配下しか扱えないため、手入力の不正パスを弾く
+            if (folder != "Assets" && !folder.StartsWith("Assets/"))
+            {
+                EditorUtility.DisplayDialog("エラー",
+                    $"保存先フォルダは Assets 配下のパスを指定してください。\n指定値: {folder}", "OK");
+                return null;
+            }
 
             // フォルダが存在しない場合は作成
             EnsureFolderExists(folder);

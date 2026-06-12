@@ -23,6 +23,7 @@ namespace CableGeneratorRuntime
         SplineContainer splineContainer;
         MeshFilter meshFilter;
         Mesh generatedMesh;
+        CableProfile subscribedProfile;
 
         readonly List<Vector3> verts = new List<Vector3>();
         readonly List<int> tris = new List<int>();
@@ -43,6 +44,33 @@ namespace CableGeneratorRuntime
         void OnDisable()
         {
             Spline.Changed -= OnSplineChanged;
+
+            if (subscribedProfile != null)
+            {
+                subscribedProfile.Changed -= OnProfileChanged;
+                subscribedProfile = null;
+            }
+        }
+
+        // プロファイル資産のパラメータ編集をメッシュへ即時反映するための購読。
+        // profile フィールドの差し替えは RebuildMesh 経由で追従する。
+        void SubscribeProfile()
+        {
+            if (subscribedProfile == profile) return;
+
+            if (subscribedProfile != null)
+                subscribedProfile.Changed -= OnProfileChanged;
+
+            subscribedProfile = profile;
+
+            if (subscribedProfile != null)
+                subscribedProfile.Changed += OnProfileChanged;
+        }
+
+        void OnProfileChanged()
+        {
+            if (this == null) return;
+            RebuildMesh();
         }
 
         void OnDestroy()
@@ -79,6 +107,8 @@ namespace CableGeneratorRuntime
 
         public void RebuildMesh()
         {
+            SubscribeProfile();
+
             if (splineContainer == null || profile == null) return;
             if (splineContainer.Splines.Count == 0) return;
 
@@ -180,13 +210,15 @@ namespace CableGeneratorRuntime
                     // UV1: パッキングされたライトマップUV
                     int loopIdx = j / vertsPerLoop;
                     int localJ = j % vertsPerLoop;
+                    // vertsPerLoop == 1 のプロファイルでもゼロ除算しないようガード
+                    int loopDiv = Mathf.Max(1, vertsPerLoop - 1);
                     // 閉じ頂点(末尾)はUV1上で先頭と重ならないよう、
                     // 1つ手前の外側にわずかにオフセット
                     float localU;
                     if (localJ == vertsPerLoop - 1)
-                        localU = (float)(localJ - 1) / (vertsPerLoop - 1) + 0.5f / (vertsPerLoop - 1);
+                        localU = (float)(localJ - 1) / loopDiv + 0.5f / loopDiv;
                     else
-                        localU = (float)localJ / (vertsPerLoop - 1);
+                        localU = (float)localJ / loopDiv;
                     uv2s.Add(CalculateUV1(uv1Layout, loopIdx, localU, t, i));
                 }
             }

@@ -23,22 +23,10 @@ namespace CableGeneratorEditor
             int count  = spline.Count;
             if (count == 0) return;
 
-            bool          closed    = spline.Closed;
-            Vector3[]     positions = new Vector3[count];
-            quaternion[]  rotations = new quaternion[count];
-            float3[]      prevIn    = new float3[count];
-            float3[]      prevOut   = new float3[count];
-            TangentMode[] modes     = new TangentMode[count];
-
+            bool      closed    = spline.Closed;
+            Vector3[] positions = new Vector3[count];
             for (int i = 0; i < count; i++)
-            {
-                var k        = spline[i];
-                positions[i] = (Vector3)k.Position;
-                rotations[i] = k.Rotation;
-                prevIn[i]    = k.TangentIn;
-                prevOut[i]   = k.TangentOut;
-                modes[i]     = spline.GetTangentMode(i);
-            }
+                positions[i] = (Vector3)spline[i].Position;
 
             float[] baseLens = new float[count];
             for (int i = 0; i < count; i++)
@@ -64,36 +52,22 @@ namespace CableGeneratorEditor
                 }
             }
 
+            // Clear+Add は KnotInserted を多数発火させ CableKnotAttachment の
+            // knotIndex をずらすため、SetKnot で既存スロットを上書きする。
             Undo.RecordObject(splineContainer, "Adjust Spline Tangent Strength");
-            spline.Clear();
-            spline.Closed = closed;
 
             for (int i = 0; i < count; i++)
             {
+                // AutoSmooth は Spline が接線を自動計算するため対象外
+                if (spline.GetTangentMode(i) == TangentMode.AutoSmooth) continue;
+
+                var    k   = spline[i];
                 float  len = baseLens[i];
-                float3 inT, outT;
-
-                bool isEndPoint = i == 0 || i == count - 1;
-
-                if (isEndPoint && modes[i] != TangentMode.AutoSmooth)
-                {
-                    float3 dirIn  = math.lengthsq(prevIn[i])  > 1e-6f ? math.normalize(prevIn[i])  : new float3(0f, 0f, -1f);
-                    float3 dirOut = math.lengthsq(prevOut[i]) > 1e-6f ? math.normalize(prevOut[i]) : new float3(0f, 0f,  1f);
-                    inT  = dirIn  * len;
-                    outT = dirOut * len;
-                }
-                else if (modes[i] == TangentMode.Broken)
-                {
-                    inT  = new float3(0f, 0f, -len);
-                    outT = new float3(0f, 0f,  len);
-                }
-                else
-                {
-                    inT  = prevIn[i];
-                    outT = prevOut[i];
-                }
-
-                spline.Add(new BezierKnot((float3)positions[i], inT, outT, rotations[i]), modes[i]);
+                float3 dirIn  = math.lengthsq(k.TangentIn)  > 1e-6f ? math.normalize(k.TangentIn)  : new float3(0f, 0f, -1f);
+                float3 dirOut = math.lengthsq(k.TangentOut) > 1e-6f ? math.normalize(k.TangentOut) : new float3(0f, 0f,  1f);
+                k.TangentIn  = dirIn  * len;
+                k.TangentOut = dirOut * len;
+                spline.SetKnot(i, k);
             }
 
             EditorUtility.SetDirty(splineContainer);
@@ -283,12 +257,8 @@ namespace CableGeneratorEditor
             int  curveCount = closed ? knotCount : knotCount - 1;
 
             var knots = new BezierKnot[knotCount];
-            var modes = new TangentMode[knotCount];
             for (int i = 0; i < knotCount; i++)
-            {
                 knots[i] = spline[i];
-                modes[i] = spline.GetTangentMode(i);
-            }
 
             var basePositions = new Vector3[curveCount];
             var inserted      = new BezierKnot[curveCount];
@@ -311,16 +281,12 @@ namespace CableGeneratorEditor
                     SafeLookRotation(segDir));
             }
 
+            // Clear+Add ではなく Insert を使い、CableKnotAttachment が
+            // KnotInserted イベントで正しく追従できるようにする。
             Undo.RecordObject(splineContainer, "Insert Cable Sag Knots");
-            spline.Clear();
-            spline.Closed = closed;
-
-            for (int i = 0; i < knotCount; i++)
-            {
-                spline.Add(knots[i], modes[i]);
-                if (closed || i < knotCount - 1)
-                    spline.Add(inserted[i], s_sagUseMirrored ? TangentMode.Mirrored : TangentMode.AutoSmooth);
-            }
+            TangentMode sagMode = s_sagUseMirrored ? TangentMode.Mirrored : TangentMode.AutoSmooth;
+            for (int i = curveCount - 1; i >= 0; i--)
+                spline.Insert(i + 1, inserted[i], sagMode);
 
             s_sagBasePositions = basePositions;
             s_sagOriginalCount = knotCount;
@@ -409,14 +375,10 @@ namespace CableGeneratorEditor
             int  curveCount = closed ? knotCount : knotCount - 1;
 
             var knots    = new BezierKnot[knotCount];
-            var modes    = new TangentMode[knotCount];
             var inserted = new BezierKnot[curveCount];
 
             for (int i = 0; i < knotCount; i++)
-            {
                 knots[i] = spline[i];
-                modes[i] = spline.GetTangentMode(i);
-            }
 
             for (int i = 0; i < curveCount; i++)
             {
@@ -436,17 +398,11 @@ namespace CableGeneratorEditor
                     rot);
             }
 
+            // Clear+Add ではなく Insert を使い、CableKnotAttachment が
+            // KnotInserted イベントで正しく追従できるようにする。
             Undo.RecordObject(splineContainer, "Subdivide Cable Knots");
-            spline.Clear();
-            spline.Closed = closed;
-
-            for (int i = 0; i < knotCount; i++)
-            {
-                spline.Add(knots[i], modes[i]);
-                bool hasInsertion = closed || i < knotCount - 1;
-                if (hasInsertion)
-                    spline.Add(inserted[i], addedKnotMode);
-            }
+            for (int i = curveCount - 1; i >= 0; i--)
+                spline.Insert(i + 1, inserted[i], addedKnotMode);
 
             EditorUtility.SetDirty(splineContainer);
             cableGen.RebuildMesh();
@@ -482,12 +438,8 @@ namespace CableGeneratorEditor
 
             int targetKnotCount = Mathf.Max(2, divisionCount + 1);
 
-            var        first     = spline[0];
-            var        last      = spline[knotCount - 1];
-            TangentMode firstMode = spline.GetTangentMode(0);
-            TangentMode lastMode  = spline.GetTangentMode(knotCount - 1);
-            Vector3 start       = (Vector3)first.Position;
-            Vector3 end         = (Vector3)last.Position;
+            Vector3 start       = (Vector3)spline[0].Position;
+            Vector3 end         = (Vector3)spline[knotCount - 1].Position;
             Vector3 dir         = end - start;
             float   totalLength = dir.magnitude;
 
@@ -495,25 +447,24 @@ namespace CableGeneratorEditor
             quaternion interiorRotation = SafeLookRotation(forward);
             float      tangentLen       = totalLength / Mathf.Max(1, divisionCount) / kLinearTangentDivisor;
 
+            // Clear+Add は KnotInserted を多数発火させ CableKnotAttachment の
+            // knotIndex をずらすため、始点・終点を残して RemoveAt / Insert で組み替える。
             Undo.RecordObject(splineContainer, "Redistribute Cable Knots");
-            spline.Clear();
-            spline.Closed = false;
 
-            spline.Add(first, firstMode);
+            for (int i = knotCount - 2; i >= 1; i--)
+                spline.RemoveAt(i);
 
             for (int i = 1; i < targetKnotCount - 1; i++)
             {
                 float  t   = (float)i / (targetKnotCount - 1);
                 float3 pos = (float3)Vector3.Lerp(start, end, t);
 
-                spline.Add(new BezierKnot(
+                spline.Insert(i, new BezierKnot(
                     pos,
                     new float3(0f, 0f, -tangentLen),
                     new float3(0f, 0f,  tangentLen),
                     interiorRotation), addedKnotMode);
             }
-
-            spline.Add(last, lastMode);
 
             EditorUtility.SetDirty(splineContainer);
             cableGen.RebuildMesh();

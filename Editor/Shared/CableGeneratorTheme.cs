@@ -52,6 +52,8 @@ namespace CableGeneratorEditor
         // Knot List
         public static GUIStyle KnotRowStyle          { get; private set; } // 個別 Knot の行コンテナ
         public static GUIStyle KnotRowSelectedStyle  { get; private set; } // 選択中 Knot の行コンテナ
+        public static GUIStyle KnotLabelButtonStyle  { get; private set; } // Knot 行の選択ラベルボタン
+        public static GUIStyle KnotDeleteButtonStyle { get; private set; } // Knot 行の削除ボタン (×)
 
         // ─────────────────────────────────────────────────────────────────────
 
@@ -156,6 +158,14 @@ namespace CableGeneratorEditor
 
             KnotRowSelectedStyle = new GUIStyle(KnotRowStyle);
             KnotRowSelectedStyle.normal.background = _texAccentCard; // Surface2 でハイライト
+
+            KnotLabelButtonStyle = new GUIStyle(CaptionStyle);
+            KnotLabelButtonStyle.alignment = TextAnchor.MiddleLeft;
+
+            KnotDeleteButtonStyle = new GUIStyle(DangerButtonStyle);
+            KnotDeleteButtonStyle.fontSize  = Mathf.RoundToInt(DangerButtonStyle.fontSize * 1.5f);
+            KnotDeleteButtonStyle.alignment = TextAnchor.MiddleCenter;
+            KnotDeleteButtonStyle.padding   = new RectOffset(0, 0, 0, 0);
         }
 
         // ─── Texture Utilities ───────────────────────────────────────────────
