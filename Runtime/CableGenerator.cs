@@ -118,6 +118,10 @@ namespace CableGeneratorRuntime
             // --- 頂点生成 ---
             Vector3 prevUp = Vector3.up;
 
+            // ねじれ対応プロファイルはスプライン距離に比例して断面を回転させる
+            float twistTurnsPerMeter = (profile is ITwistedProfile twisted)
+                ? twisted.GetTwistTurnsPerMeter() : 0f;
+
             for (int i = 0; i <= resolution; i++)
             {
                 float t = (float)i / resolution;
@@ -151,15 +155,24 @@ namespace CableGeneratorRuntime
 
                 float v = (splineLength * t) * uvTiling;
 
+                float twistAngle = twistTurnsPerMeter * (Mathf.PI * 2f) * splineLength * t;
+                float twistCos = Mathf.Cos(twistAngle);
+                float twistSin = Mathf.Sin(twistAngle);
+
                 for (int j = 0; j < profileVertCount; j++)
                 {
+                    float px = profileVerts[j].x * twistCos - profileVerts[j].y * twistSin;
+                    float py = profileVerts[j].x * twistSin + profileVerts[j].y * twistCos;
+
                     Vector3 vertPos = localPos
-                        + localRight * profileVerts[j].x
-                        + localUp * profileVerts[j].y;
+                        + localRight * px
+                        + localUp * py;
                     verts.Add(vertPos);
 
-                    Vector3 norm = (localRight * profileNormals[j].x
-                        + localUp * profileNormals[j].y).normalized;
+                    float nx = profileNormals[j].x * twistCos - profileNormals[j].y * twistSin;
+                    float ny = profileNormals[j].x * twistSin + profileNormals[j].y * twistCos;
+
+                    Vector3 norm = (localRight * nx + localUp * ny).normalized;
                     normals.Add(norm);
 
                     uvs.Add(new Vector2(profileUs[j], v));

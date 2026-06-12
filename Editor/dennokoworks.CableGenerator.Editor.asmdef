@@ -1,0 +1,21 @@
+{
+    "name": "dennokoworks.CableGenerator.Editor",
+    "rootNamespace": "CableGeneratorEditor",
+    "references": [
+        "dennokoworks.CableGenerator.Runtime",
+        "Unity.Splines",
+        "Unity.Splines.Editor",
+        "Unity.Mathematics"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
