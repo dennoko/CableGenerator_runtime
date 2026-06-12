@@ -88,13 +88,24 @@ namespace CableGeneratorRuntime
             }
             if (!isOurSpline) return;
 
+            // Clear() や一括操作は knotIdx = -1（バッチ変更）で発火する。
+            // 個別のインデックス補正は行わず、位置の再追従のみ行う。
+            if (knotIdx < 0)
+            {
+                UpdateAttachment();
+                return;
+            }
+
             int prevKnotIndex = knotIndex;
 
             if (modification == SplineModification.KnotInserted)
             {
                 // 追従先より手前にノットが挿入された場合、インデックスをずらす
                 if (knotIdx <= knotIndex)
+                {
+                    RecordIndexChangeUndo();
                     knotIndex++;
+                }
             }
             else if (modification == SplineModification.KnotRemoved)
             {
@@ -103,18 +114,26 @@ namespace CableGeneratorRuntime
                     // 追従先のノットが削除された → 1つ若いインデックスへ移動
                     int newIndex = Mathf.Max(0, knotIndex - 1);
 
-                    // 移動先に既に別のアタッチメントがあるか確認
-                    if (HasOtherAttachmentAt(newIndex))
+                    // 移動先に既に別のアタッチメントがあるか確認。
+                    // ノット0が削除された場合、旧ノット1のアタッチメントが新0へ
+                    // 降りてくるため（イベント処理順によらず）両方を確認する。
+                    bool conflict = HasOtherAttachmentAt(newIndex);
+                    if (knotIndex == 0)
+                        conflict |= HasOtherAttachmentAt(1);
+
+                    if (conflict)
                     {
                         // 競合するため自身を削除
                         DestroySelf();
                         return;
                     }
+                    RecordIndexChangeUndo();
                     knotIndex = newIndex;
                 }
                 else if (knotIdx < knotIndex)
                 {
                     // 追従先より手前のノットが削除された → インデックスをずらす
+                    RecordIndexChangeUndo();
                     knotIndex--;
                 }
             }
@@ -126,6 +145,16 @@ namespace CableGeneratorRuntime
 #endif
 
             UpdateAttachment();
+        }
+
+        // ノット挿入/削除と同じ Undo グループに knotIndex の変更を記録し、
+        // Undo 時にスプラインとアタッチメントが同期して巻き戻るようにする。
+        void RecordIndexChangeUndo()
+        {
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+                UnityEditor.Undo.RecordObject(this, "Update Knot Attachment Index");
+#endif
         }
 
         bool HasOtherAttachmentAt(int index)
@@ -150,10 +179,12 @@ namespace CableGeneratorRuntime
             else
             {
 #if UNITY_EDITOR
+                // Spline.Changed イベント処理中の DestroyImmediate は危険なため遅延実行し、
+                // ノット削除の Undo でアタッチメントも復元されるよう Undo API を使う
                 UnityEditor.EditorApplication.delayCall += () =>
                 {
                     if (this != null)
-                        DestroyImmediate(gameObject);
+                        UnityEditor.Undo.DestroyObjectImmediate(gameObject);
                 };
 #endif
             }

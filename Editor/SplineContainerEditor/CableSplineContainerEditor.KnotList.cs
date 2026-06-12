@@ -42,6 +42,9 @@ namespace CableGeneratorEditor
             {
                 Undo.RecordObject(container, "制御点を削除");
                 spline.RemoveAt(deleteIndex);
+                // 削除位置以降を選択していた場合は同じノットを指し続けるよう1つ前へずらす
+                if (CableGeneratorInspector.s_snapKnotIndex >= deleteIndex)
+                    CableGeneratorInspector.s_snapKnotIndex--;
                 CableGeneratorInspector.s_snapKnotIndex =
                     Mathf.Clamp(CableGeneratorInspector.s_snapKnotIndex, 0, Mathf.Max(0, spline.Count - 1));
                 CableGeneratorInspector.s_selectedKnotIndices.Clear();
