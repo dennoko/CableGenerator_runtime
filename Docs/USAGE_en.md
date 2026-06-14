@@ -41,17 +41,71 @@ A `Cable` GameObject is created with the following components pre-configured:
 | `MeshRenderer` | Renders the mesh (default material applied) |
 | `CableGenerator` | Drives the mesh generation |
 
-### 2.2 Assign a Cross-Section Profile
+### 2.2 Assign and Configure a Cross-Section Profile
 
-Select the Cable object and locate the **CableGenerator** Inspector. Set the **断面プロファイル (Cross-Section Profile)** field to a `CableProfile` asset.
+A cross-section profile is a `CableProfile` ScriptableObject asset that defines the shape of the cable when cut. This shape is extruded along the spline to generate the mesh. No mesh is generated until a profile is assigned.
 
-To create a profile asset:
+#### 2.2.1 Create a Profile Asset
 
+Right-click in the Project window or use the top menu:
 ```
-Right-click in Project window > Create > CableGenerator > Profiles > [Profile Type]
+Create > CableGenerator > Profiles > [Profile Type]
 ```
+An asset file will be created. You can rename it as desired.
 
-No mesh is generated until a profile is assigned.
+The available profile types and their typical use cases:
+
+| Menu Option | Cross-Section Shape | Example Use Case |
+|---|---|---|
+| **Heavy Duty Cable Profile** | Circular (thick round) with optional ribbing | Power cables, hoses, pipes |
+| **Flat Cable Profile** | Rounded rectangle (flat shape) | Flat cables, ribbon cables, belts |
+| **Parallel Wire Profile** | Two circles joined (figure-eight shape) | Dual-core wires, speaker cables |
+| **Bundled Cable Profile** | Multiple circular wires arranged in a row | Data cable bundles, LAN cables |
+| **Clustered Cable Profile** | Multiple circular wires packed concentrically | Multi-core cables, bundles inside conduits |
+
+#### 2.2.2 Configure Profile Parameters
+
+Select the created profile asset in the Project window to view and adjust its parameters in the Inspector.
+
+**Heavy Duty Cable Profile:**
+- **Radius**: Radius of the cable. Recommended: `0.01` to `0.1` m.
+- **Segments**: Number of divisions around the circumference. Higher is smoother. Recommended: `8` to `32`.
+- **Rib Count**: Number of ridges/ribs. Set to `0` for a smooth circle. Recommended: `0` to `12`.
+- **Rib Depth**: Depth of the ribs relative to the radius. Recommended: `0` to `0.3`.
+
+**Flat Cable Profile:**
+- **Width**: Total width (X-axis length). Recommended: `0.05` to `0.2` m.
+- **Thickness**: Total thickness (Y-axis length). Recommended: `0.01` to `0.05` m.
+- **Corner Radius**: Radius of the rounded corners. Recommended: `0.003` to `0.01` m.
+- **Corner Segments**: Number of divisions for the rounded corners. Recommended: `2` to `4`.
+
+**Parallel Wire Profile:**
+- **Wire Radius**: Radius of each individual wire. Recommended: `0.01` to `0.03` m.
+- **Spacing**: Distance between the centers of the two wires. Recommended: `0.04` to `0.08` m.
+- **Segments**: Number of divisions for each circle. Recommended: `6` to `16`.
+
+**Bundled Cable Profile:**
+- **Wire Count**: Number of wires. Recommended: `1` to `24`.
+- **Wire Radius**: Radius of each individual wire. Recommended: `0.005` to `0.03` m.
+- **Gap**: Gap/spacing between wires. Recommended: `0` to `0.01` m.
+- **Segments**: Number of divisions for each circle. Recommended: `4` to `32`.
+
+**Clustered Cable Profile:**
+- **Wire Count**: Number of wires. Recommended: `1` to `37`.
+- **Wire Radius**: Radius of each individual wire. Recommended: `0.005` to `0.02` m.
+- **Segments**: Number of divisions for each circle. Recommended: `4` to `32`.
+- **Jitter**: Random displacement of wire positions. Recommended: `0` to `0.5`.
+- **Radius Jitter**: Random variation in wire radii. Recommended: `0` to `0.3`.
+- **Seed**: Random seed to reproduce the same layout.
+
+#### 2.2.3 Assign the Profile to Cable Generator
+
+1. Select the **Cable object** in the Scene View or Hierarchy.
+2. In the **CableGenerator** Inspector, assign the created profile to the **断面プロファイル (Cross-Section Profile)** field using one of the following methods:
+   - **Drag & Drop**: Drag the profile asset from the Project window to the field.
+   - **Picker**: Click the circle selector (◎) icon on the right side of the field and choose it from the list.
+
+**The mesh is generated and displayed immediately upon assignment.**
 
 ### 2.3 Edit the Spline Shape
 

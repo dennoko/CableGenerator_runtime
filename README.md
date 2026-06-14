@@ -19,9 +19,10 @@
 - Unity Splines パッケージ
 - Unity.Mathematics パッケージ
 
-## 使い方
+## 使い方 / Usage
 
-`Docs/USAGE_ja.md` を参照してください。
+- 日本語: [USAGE_ja.md](Docs/USAGE_ja.md) を参照してください。
+- English: Refer to [USAGE_en.md](Docs/USAGE_en.md).
 
 ## ライセンス
 
