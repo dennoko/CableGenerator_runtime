@@ -33,10 +33,14 @@ namespace CableGeneratorEditor
 
         static void DrawSceneHintLabel()
         {
-            Handles.BeginGUI();
-            string msg = s_pickCount == 0
+            DrawSceneHintText(s_pickCount == 0
                 ? "[ Spline設定 ]  1点目を選択   Esc: キャンセル"
-                : "[ Spline設定 ]  2点目を選択   Esc: キャンセル";
+                : "[ Spline設定 ]  2点目を選択   Esc: キャンセル");
+        }
+
+        static void DrawSceneHintText(string msg)
+        {
+            Handles.BeginGUI();
 
             if (s_sceneHintStyle == null)
                 s_sceneHintStyle = new GUIStyle(GUI.skin.box)

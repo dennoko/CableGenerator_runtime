@@ -122,8 +122,9 @@ namespace CableGeneratorEditor
             }
 
             if (container.Splines == null || container.Splines.Count == 0) return;
-            // ピッキングモード中はラベルを非表示
+            // ピッキング/サーフェス描画モード中はラベルを非表示
             if (CableGeneratorInspector.s_pickingTarget != null) return;
+            if (CableGeneratorInspector.s_drawTarget != null) return;
 
             var spline = container.Splines[0];
             Transform tf = container.transform;

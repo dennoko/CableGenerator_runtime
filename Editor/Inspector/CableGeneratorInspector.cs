@@ -53,6 +53,7 @@ namespace CableGeneratorEditor
 
         // ---- Section Fold States (デフォルト折りたたみ) ----
         static bool s_foldSplineSetup     = false;
+        static bool s_foldSurfaceDraw     = false;
         static bool s_foldKnotSubdivision = false;
         static bool s_foldCableSag        = false;
         static bool s_foldKnotProjection  = false;
@@ -148,6 +149,8 @@ namespace CableGeneratorEditor
             // static なピッキング状態が残って全インスペクタがロックされるため、ここで解除する。
             if (s_pickingTarget != null && s_pickingTarget == target as CableGenerator)
                 CancelPickingMode();
+            if (s_drawTarget != null && s_drawTarget == target as CableGenerator)
+                CancelDrawMode();
         }
 
         // ================================================================
@@ -243,7 +246,7 @@ namespace CableGeneratorEditor
 
                 if (!isMyTarget)
                 {
-                    EditorGUI.BeginDisabledGroup(s_pickingTarget != null);
+                    EditorGUI.BeginDisabledGroup(s_pickingTarget != null || s_drawTarget != null);
                     if (GUILayout.Button("2点選択でSplineを設定", CableGeneratorTheme.SecondaryButtonStyle))
                         StartPickingMode(generator);
                     EditorGUI.EndDisabledGroup();
@@ -274,6 +277,10 @@ namespace CableGeneratorEditor
                     EditorGUILayout.EndHorizontal();
                 }
             });
+
+            // ---- サーフェスに描いて配線 ----
+            DrawFoldableSection("サーフェスに描いて配線", ref s_foldSurfaceDraw, () =>
+                DrawSurfaceDrawSection(generator));
 
             // ---- ノットの細分化・等分 ----
             DrawFoldableSection("ノットの細分化・等分", ref s_foldKnotSubdivision, () =>

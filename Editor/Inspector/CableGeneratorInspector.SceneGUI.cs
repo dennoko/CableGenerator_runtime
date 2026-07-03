@@ -18,6 +18,13 @@ namespace CableGeneratorEditor
             var splineContainer = gen.GetComponent<SplineContainer>();
             if (splineContainer == null || splineContainer.Splines.Count == 0) return;
 
+            // ---- Surface draw mode (サーフェス描画) が最優先 ----
+            if (s_drawTarget == gen)
+            {
+                HandleSurfaceDrawSceneGUI(gen);
+                return;
+            }
+
             // ---- Picking mode (2点選択) が優先 ----
             if (s_pickingTarget == gen)
             {
