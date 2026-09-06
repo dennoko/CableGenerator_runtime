@@ -3,7 +3,7 @@
 - 調査日: 2026-09-06
 - 現行: Unity 2022.3.22f1 / Built-in RP
 - 目標: Unity 6 (6000.0 LTS) / **BiRP 維持**
-- 共通調査: [`../../../Docs/Impl/unity6-migration-overview.md`](../../../Docs/Impl/unity6-migration-overview.md)
+- 共通調査: [`unity6-migration-overview.md`](unity6-migration-overview.md)
 
 ## 判定
 
@@ -22,7 +22,7 @@
 | UI | IMGUI（`CableGeneratorTheme`）+ カスタムインスペクタ + SceneGUI |
 | 外部依存 | **`com.unity.splines` 2.5.2**（VRChat SDK / NDMF には非依存） |
 
-VRChat SDK / NDMF に依存しないため、**SDK の Unity 6 対応を待たずに単体検証できる**。
+VRChat SDK / NDMF に依存しないため、**外部パッケージに依存せず単体で検証できる**。
 
 ## 検出事項
 
